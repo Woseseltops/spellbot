@@ -22,12 +22,16 @@ class Connection():
     def upload_text(self,name,text):
         self.name = name;
         request = urllib2.Request(self.url + '/'+ self.project_name +'/input/'+name);
-        data = urllib.urlencode({'inputtemplate':'textinput','contents':text});
-        self.opener.open(request,data)
+        try:
+            data = urllib.urlencode({'inputtemplate':'textinput','contents':text});
+            self.opener.open(request,data)
+            return True;
+        except UnicodeEncodeError:
+            return False;            
 
-    def start_webservice(self):
+    def start_webservice(self,arguments):
         request = urllib2.Request(self.url + '/' + self.project_name + '/');
-        data = urllib.urlencode({'sensitivity':'0.5','donate':'1'});
+        data = urllib.urlencode(arguments);
         self.opener.open(request,data)
 
     def __getattr__(self,ready):
