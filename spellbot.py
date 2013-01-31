@@ -5,6 +5,7 @@ import clamlib
 import time
 import xml.dom.minidom as xml
 import cgi
+import random
 
 def search_tweets(query,api = None):
     """Returns some tweets with this query""";
@@ -12,13 +13,13 @@ def search_tweets(query,api = None):
     if api == None:
         api = twython.Twython();
 
-    results = api.search(q=query)[u'statuses'];
+    results = api.search(q=query)['statuses'];
 
     return results;
 
 def find_errors(tweet,username,password):
     fowlt = clamlib.Connection("http://webservices-lst.science.ru.nl/fowlt",username,password);
-    fowlt.start_project('spellbot');
+    fowlt.start_project('spellbot'+str(random.randrange(10000)));
     text_uploaded = fowlt.upload_text('input.txt',tweet);
 
     if text_uploaded:
@@ -45,9 +46,11 @@ def xml_to_errorlist(inp):
                 return cgi.escape(j.data).encode('ascii','xmlcharrefreplace').decode();    
 
     parsed_data = xml.parseString(inp);
-    words = parsed_data.getElementsByTagName('w');
     output_corrections = [];
 
+    words = parsed_data.getElementsByTagName('w');
+
+    #Try to find regular errors
     for i in words:
         original_text = get_content(i.getElementsByTagName('t')[0]);
 
@@ -55,10 +58,40 @@ def xml_to_errorlist(inp):
         for j in corrections:
             correction = get_content(j.getElementsByTagName('t')[0]);
             confidence = j.getAttribute('confidence');
+
+            #Manual fix for alot
+            if original_text == 'alot':
+                correction = 'a lot';
+
             output_corrections.append({'original':original_text,'suggestion':correction,
                                        'confidence':confidence});
             break;
 
+    corrections = parsed_data.getElementsByTagName('correction');
+
+    #Try to find space errors
+    for i in corrections:
+        current = i.getElementsByTagName('current');
+
+        if len(current) > 0: #If current is there, this is a space error
+
+            current = current[0].getElementsByTagName('t');
+            original_text = '';
+
+            for j in current:
+                original_text += get_content(j) + ' ';
+
+            suggestion = i.getElementsByTagName('suggestion');
+            suggestion = suggestion[0].getElementsByTagName('t');
+            correction = '';
+
+            for j in suggestion:
+                correction += get_content(j) + ' ';
+
+            confidence = i.getAttribute('confidence');
+            output_corrections.append({'original':original_text.strip(),'suggestion':correction.strip(),
+                                           'confidence':confidence});
+            
     return output_corrections;
 
 def generate_response(username,original,correction):
@@ -97,9 +130,10 @@ for q in queries:
         tweets = search_tweets(q,api);
 
     #Give all tweets to a spellingchecker
+#    tweets = [{'text':'I make alot of misakes','user':{'screen_name':'wessel'}},{'text':'spellch ecker','user':{'screen_name':'wessel'}}];
 
     for tweet in tweets:
-        print(tweet[u'text']);
+        print(tweet['text']);
         errors = find_errors(tweet['text'],passwords['fowlt_username'],passwords['fowlt_password']);
         print(errors);
 
@@ -108,8 +142,7 @@ for q in queries:
             error = errors[0];
 
             #Tweet the result in a random format
-            generate_response('@'+tweet[u'user'][u'screen_name'],error['original'],error['suggestion']);
+            generate_response('@'+tweet['user']['screen_name'],error['original'],error['suggestion']);
 
 #Alleen als heel confident
 #Runons en splits gaan nog niet goed
-#Alle tweets er in een keer door

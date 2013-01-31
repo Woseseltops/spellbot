@@ -1,6 +1,6 @@
 Hi $u, you probably meant $c instead of $o.
-Hi $u, in case you didn't know: $c should be $o.
-Hi $u, not important, but $c should have been $o.
+Hi $u, in case you didn't know: $o should be $c.
+Hi $u, not important, but $o should have been $c.
 Hi $u, if you're interested in correct spelling: $o -> $c.
 Inspiring message, $u, even with $o instead of $c.
 Lovely tweet, $u, but I would have said $c instead of $o.
