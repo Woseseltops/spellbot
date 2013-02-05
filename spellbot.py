@@ -57,7 +57,7 @@ def xml_to_errorlist(inp):
         corrections = i.getElementsByTagName('correction')
         for j in corrections:
             correction = get_content(j.getElementsByTagName('t')[0]);
-            confidence = j.getAttribute('confidence');
+            confidence = float(j.getAttribute('confidence'));
 
             #Manual fix for alot
             if original_text == 'alot':
@@ -88,7 +88,7 @@ def xml_to_errorlist(inp):
             for j in suggestion:
                 correction += get_content(j) + ' ';
 
-            confidence = i.getAttribute('confidence');
+            confidence = float(i.getAttribute('confidence'));
             output_corrections.append({'original':original_text.strip(),'suggestion':correction.strip(),
                                            'confidence':confidence});
             
@@ -98,8 +98,7 @@ def generate_response(username,original,correction):
     """Generates a response out of a correction""";
 
     responses = open('responses.txt','r').readlines();
-    print('Found possible tweet:');
-    print(random.choice(responses).replace('$u',username).replace('$o',original).replace('$c',correction));    
+    return random.choice(responses).replace('$u',username).replace('$o',original).replace('$c',correction);    
 
 def get_passwords(filename):
 
@@ -112,7 +111,35 @@ def get_passwords(filename):
 
     return passwords;
 
-##################
+def clean_tweet(tweet,severity=2):
+    """Removes links, hastags, smilies, addressees""";
+
+    result = tweet.replace('\n','');
+
+    if severity > 1:
+        triggers = ['@','#','http',':',';'];
+
+        words = result.split();
+        clean_words = [];
+
+        for i in words:
+            found_trigger = False;
+            
+            for j in triggers:
+                if j in i:
+                    found_trigger = True;
+                    break;
+
+            if found_trigger:
+                continue;
+
+            clean_words.append(i);
+
+            result = ' '.join(clean_words);
+
+    return result;
+
+######## Scripts starts here ############################3
 
 passwords = get_passwords('passwords.txt');
 
@@ -129,20 +156,30 @@ for q in queries:
     if len(q) > 0:
         tweets = search_tweets(q,api);
 
-    #Give all tweets to a spellingchecker
-#    tweets = [{'text':'I make alot of misakes','user':{'screen_name':'wessel'}},{'text':'spellch ecker','user':{'screen_name':'wessel'}}];
+    found_error = False;
 
+    #Check all tweets for errors
     for tweet in tweets:
-        print(tweet['text']);
-        errors = find_errors(tweet['text'],passwords['fowlt_username'],passwords['fowlt_password']);
-        print(errors);
+        errors = find_errors(clean_tweet(tweet['text']),passwords['fowlt_username'],passwords['fowlt_password']);
 
+        #See if errors were found
         if len(errors) > 0:
 
             error = errors[0];
 
-            #Tweet the result in a random format
-            generate_response('@'+tweet['user']['screen_name'],error['original'],error['suggestion']);
+            for error in errors:
+                
+                #If confident enough, tweet the result in a random format
+                if error['confidence'] > .90:
+                    found_error = True;
 
-#Alleen als heel confident
-#Runons en splits gaan nog niet goed
+                    #response = generate_response('@'+tweet['user']['screen_name'],error['original'],error['suggestion'])
+                    response = generate_response('@...',error['original'],error['suggestion'])
+                    api.updateStatus(status=response);
+
+                    print(tweet['text']);
+                    print(response);
+                    break;
+
+        if found_error:
+            break;
