@@ -97,7 +97,7 @@ def xml_to_errorlist(inp):
 def generate_response(username,original,correction):
     """Generates a response out of a correction""";
 
-    responses = open('responses.txt','r').readlines();
+    responses = open(loc+'responses.txt','r').readlines();
     return random.choice(responses).replace('$u',username).replace('$o',original).replace('$c',correction);    
 
 def get_passwords(filename):
@@ -141,7 +141,9 @@ def clean_tweet(tweet,severity=2):
 
 ######## Scripts starts here ############################3
 
-passwords = get_passwords('passwords.txt');
+loc = '';
+
+passwords = get_passwords(loc+'passwords.txt');
 
 api = twython.Twython(app_key=passwords['app_key'],
             app_secret=passwords['app_secret'],
@@ -149,7 +151,7 @@ api = twython.Twython(app_key=passwords['app_key'],
             oauth_token_secret=passwords['oauth_token_secret'])
 
 #Look for tweets for all queries
-queries = open('queries.txt','r');
+queries = open(loc+'queries.txt','r');
 for q in queries:    
     q = q.strip();
     print('Looking for tweets with',q);
