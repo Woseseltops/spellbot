@@ -57,7 +57,11 @@ def xml_to_errorlist(inp):
         corrections = i.getElementsByTagName('correction')
         for j in corrections:
             correction = get_content(j.getElementsByTagName('t')[0]);
-            confidence = float(j.getAttribute('confidence'));
+
+            try:
+                confidence = float(j.getAttribute('confidence'));
+            except ValueError:
+                confidence = 0.0;
 
             #Manual fix for alot
             if original_text == 'alot':
@@ -88,7 +92,11 @@ def xml_to_errorlist(inp):
             for j in suggestion:
                 correction += get_content(j) + ' ';
 
-            confidence = float(i.getAttribute('confidence'));
+            try:
+                confidence = float(i.getAttribute('confidence'));
+            except ValueError:
+                confidence = 0.0;
+
             output_corrections.append({'original':original_text.strip(),'suggestion':correction.strip(),
                                            'confidence':confidence});
             
@@ -141,7 +149,7 @@ def clean_tweet(tweet,severity=2):
 
 ######## Scripts starts here ############################3
 
-loc = '';
+loc = '/scratch/wstoop/spellbot/';
 
 passwords = get_passwords(loc+'passwords.txt');
 
@@ -172,7 +180,7 @@ for q in queries:
             for error in errors:
                 
                 #If confident enough, tweet the result in a random format
-                if error['confidence'] > .90:
+                if error['confidence'] > .98:
                     found_error = True;
 
                     #response = generate_response('@'+tweet['user']['screen_name'],error['original'],error['suggestion'])
