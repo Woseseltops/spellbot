@@ -155,8 +155,9 @@ try:
     queries = sys.argv[2];
     responses = sys.argv[3];
     passwords = sys.argv[4];
+    check_confidence = sys.argv[5];
 except:
-    print('spellbot.py [webservice] [queries] [responses] [passwords]');
+    print('spellbot.py [webservice] [queries] [responses] [passwords] [check_confidence (y/n)]');
     sys.exit('Quit');
 
 passwords = get_passwords(passwords);
@@ -188,7 +189,7 @@ for q in queries:
             for error in errors:
                 
                 #If confident enough, tweet the result in a random format
-                if error['confidence'] > .98:
+                if error['confidence'] > .98 or check_confidence == 'no':
                     found_error = True;
 
                     #response = generate_response('@'+tweet['user']['screen_name'],error['original'],error['suggestion'])
