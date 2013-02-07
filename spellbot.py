@@ -6,6 +6,7 @@ import time
 import xml.dom.minidom as xml
 import cgi
 import random
+import sys
 
 def search_tweets(query,api = None):
     """Returns some tweets with this query""";
@@ -17,8 +18,8 @@ def search_tweets(query,api = None):
 
     return results;
 
-def find_errors(tweet,username,password):
-    fowlt = clamlib.Connection("http://webservices-lst.science.ru.nl/fowlt",username,password);
+def find_errors(webservice,tweet,username,password):
+    fowlt = clamlib.Connection("http://webservices-lst.science.ru.nl/"+webservice,username,password);
     fowlt.start_project('spellbot'+str(random.randrange(10000)));
     text_uploaded = fowlt.upload_text('input.txt',tweet);
 
@@ -102,10 +103,10 @@ def xml_to_errorlist(inp):
             
     return output_corrections;
 
-def generate_response(username,original,correction):
+def generate_response(responses,username,original,correction):
     """Generates a response out of a correction""";
 
-    responses = open(loc+'responses.txt','r').readlines();
+    responses = open(responses,'r').readlines();
     return random.choice(responses).replace('$u',username).replace('$o',original).replace('$c',correction);    
 
 def get_passwords(filename):
@@ -149,9 +150,16 @@ def clean_tweet(tweet,severity=2):
 
 ######## Scripts starts here ############################3
 
-loc = '/scratch/wstoop/spellbot/';
+try:
+    webservice = sys.argv[1];
+    queries = sys.argv[2];
+    responses = sys.argv[3];
+    passwords = sys.argv[4];
+except:
+    print('spellbot.py [webservice] [queries] [responses] [passwords]');
+    sys.exit('Quit');
 
-passwords = get_passwords(loc+'passwords.txt');
+passwords = get_passwords(passwords);
 
 api = twython.Twython(app_key=passwords['app_key'],
             app_secret=passwords['app_secret'],
@@ -159,7 +167,7 @@ api = twython.Twython(app_key=passwords['app_key'],
             oauth_token_secret=passwords['oauth_token_secret'])
 
 #Look for tweets for all queries
-queries = open(loc+'queries.txt','r');
+queries = open(queries,'r');
 for q in queries:    
     q = q.strip();
     print('Looking for tweets with',q);
@@ -170,7 +178,7 @@ for q in queries:
 
     #Check all tweets for errors
     for tweet in tweets:
-        errors = find_errors(clean_tweet(tweet['text']),passwords['fowlt_username'],passwords['fowlt_password']);
+        errors = find_errors(webservice,clean_tweet(tweet['text']),passwords['fowlt_username'],passwords['fowlt_password']);
 
         #See if errors were found
         if len(errors) > 0:
@@ -184,7 +192,7 @@ for q in queries:
                     found_error = True;
 
                     #response = generate_response('@'+tweet['user']['screen_name'],error['original'],error['suggestion'])
-                    response = generate_response('@...',error['original'],error['suggestion'])
+                    response = generate_response(responses,'@...',error['original'],error['suggestion'])
                     api.updateStatus(status=response);
 
                     print(tweet['text']);
