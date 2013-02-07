@@ -43,7 +43,7 @@ class Connection():
 
         #Get completion from status element from xml
         elem = xml.parseString(total).getElementsByTagName('status')[0].getAttribute('completion');            
-        if elem == '100':
+        if int(elem) > 98:
             return True;
         else:
             return False;

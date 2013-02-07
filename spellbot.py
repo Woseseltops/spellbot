@@ -19,6 +19,7 @@ def search_tweets(query,api = None):
     return results;
 
 def find_errors(webservice,tweet,username,password):
+
     fowlt = clamlib.Connection("http://webservices-lst.science.ru.nl/"+webservice,username,password);
     fowlt.start_project('spellbot'+str(random.randrange(10000)));
     text_uploaded = fowlt.upload_text('input.txt',tweet);
@@ -179,6 +180,7 @@ for q in queries:
 
     #Check all tweets for errors
     for tweet in tweets:
+
         errors = find_errors(webservice,clean_tweet(tweet['text']),passwords['fowlt_username'],passwords['fowlt_password']);
 
         #See if errors were found
