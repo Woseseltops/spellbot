@@ -187,9 +187,9 @@ for q in queries:
             error = errors[0];
 
             for error in errors:
-                
+                print(error['confidence']);                
                 #If confident enough, tweet the result in a random format
-                if error['confidence'] > .98 or check_confidence == 'no':
+                if error['confidence'] > .98 or check_confidence == 'n':
                     found_error = True;
 
                     #response = generate_response('@'+tweet['user']['screen_name'],error['original'],error['suggestion'])
