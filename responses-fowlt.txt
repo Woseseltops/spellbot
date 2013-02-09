@@ -21,5 +21,5 @@ $u I really don't care about $o or $c (but in case you do: I'd use $c here).
 I think $u is right... $o instead of $c isn't a big deal.
 $u I'm not saying anything (but $o should be $c).
 Hey $u, $c or $o? (hint: $c)
-Psst, $u! That should have $c instead $o.
+Psst, $u! That should have been $c instead of $o.
 $u, not that anybody cares, but $o should have been $c.

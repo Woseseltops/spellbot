@@ -1,2 +1,5 @@
 Hallo $u, je bedoelde waarschijnlijk $c in plaats van $o.
 Hoi $u, ik denk dat je $c bedoelde en niet $o... maar wie ben ik?
+$u ik zeg niks (maar $o zou $c moeten zijn).
+Hoi $u, $c of $o? (hint: $c)
+Psst $u, het is $c, niet $o.
