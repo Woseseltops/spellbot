@@ -194,9 +194,9 @@ for q in queries:
                 if error['original'] == q and error['confidence'] > .98 or check_confidence == 'n':
                     found_error = True;
 
-                    #response = generate_response('@'+tweet['user']['screen_name'],error['original'],error['suggestion'])
-                    response = generate_response(responses,'@...',error['original'],error['suggestion'])
-                    api.updateStatus(status=response);
+                    response = generate_response(responses,'@'+tweet['user']['screen_name'],error['original'],error['suggestion'])
+                    #response = generate_response(responses,'@...',error['original'],error['suggestion'])
+                    api.updateStatus(status=response,in_reply_to_status_id=tweet['id']);
 
                     print(tweet['text']);
                     print(response);
