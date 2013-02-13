@@ -171,7 +171,19 @@ api = twython.Twython(app_key=passwords['app_key'],
 #Look for tweets for all queries
 queries = open(queries,'r');
 for q in queries:    
-    q = q.strip();
+    q = q.strip().split();
+
+    #Skip randomly if r is added behind query
+    try:
+        q[1];
+        if random.choice([True,False,True]):
+            print('Skipped '+q[0]);
+            continue;
+    except IndexError:
+        pass;
+
+    q = q[0];
+
     print('Looking for tweets with',q);
     if len(q) > 0:
         tweets = search_tweets(q,api);
