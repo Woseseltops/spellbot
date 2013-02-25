@@ -193,6 +193,10 @@ for q in queries:
     #Check all tweets for errors
     for tweet in tweets:
 
+        if tweet['text'][:2] == 'RT':
+            print('Skipped, is a retweet');
+            continue;
+
         errors = find_errors(webservice,clean_tweet(tweet['text']),passwords['fowlt_username'],passwords['fowlt_password']);
 
         #See if errors were found
@@ -201,7 +205,7 @@ for q in queries:
             error = errors[0];
 
             for error in errors:
-                print(error['confidence']);                
+                print('Error found, confidence:',error['confidence']);   
                 #If the error we were looking for and confident enough, tweet the result in a random format
                 if error['original'] == q and error['confidence'] > .98 or check_confidence == 'n':
                     found_error = True;
