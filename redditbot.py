@@ -4,6 +4,7 @@ import random
 import time
 import xml.dom.minidom as xml
 import cgi
+import time
 
 def find_errors(webservice,tweet,username,password):
 
@@ -131,13 +132,15 @@ def correct_titles(thread,prefab_errors):
     errors = find_errors('fowlt',title,passwords['fowlt_username'],passwords['fowlt_password']);
 	    
     for i in errors:
-        if i['confidence'] > .97 and i['original'] in prefab_errors:
+        if i['confidence'] > .97 and i['original'] in prefab_errors \
+           and i['original'].strip() != i['suggestion'].strip():
             response = generate_response('/scratch/wstoop/spellbot/responses-redditbot.txt',str(op),i['original'],i['suggestion']);
 
             print(title);
             print(response);
 
-#            thread.add_comment(add_footer(response));
+            thread.add_comment(add_footer(response));
+            time.sleep(180);
 
             break;
 
@@ -151,7 +154,7 @@ def correct_comments(thread,prefab_errors):
 
     first_level_comments = thread.comments;
 
-    for i in first_level_comments[:50]:
+    for i in first_level_comments[:30]:
         try:
             author = i.author;
             message = i.body;
@@ -166,7 +169,6 @@ def correct_comments(thread,prefab_errors):
                 break;
 
         if found_possible_error == False or str(author) == 'fowlt':
-            print('#  Skipping comment');
             continue;
 
         print('#  Checking comment for errors because of '+j);
@@ -174,19 +176,21 @@ def correct_comments(thread,prefab_errors):
         errors = find_errors('fowlt',message,passwords['fowlt_username'],passwords['fowlt_password']);  
 
         for j in errors:
-            if j['confidence'] > .97 and j['original'] in prefab_errors:
+            if j['confidence'] > .97 and j['original'] in prefab_errors \
+               and j['original'].strip() != j['suggestion'].strip():
                 response = generate_response('/scratch/wstoop/spellbot/responses-redditbot.txt',str(author),j['original'],j['suggestion']);
     
                 print(message);
                 print(response);
 
-#                i.reply(add_footer(response));
+                i.reply(add_footer(response));
+                time.sleep(180);
     
                 break;
 
         second_level_comments = i.replies;
 
-        for j in second_level_comments:
+        for j in second_level_comments[:5]:
 
             try:
                 author = j.author;
@@ -202,7 +206,6 @@ def correct_comments(thread,prefab_errors):
                     break;
 
             if not found_possible_error or str(author) == 'fowlt':
-                print('#  Skipping comment');
                 continue;
     
             print('#  Checking comment for errors because of '+k);
@@ -210,13 +213,15 @@ def correct_comments(thread,prefab_errors):
             errors = find_errors('fowlt',message,passwords['fowlt_username'],passwords['fowlt_password']);
 	    
             for k in errors:
-                if k['confidence'] > .97 and k['original'] in prefab_errors:
+                if k['confidence'] > .97 and k['original'] in prefab_errors \
+                   and k['original'].strip() != k['suggestion'].strip():
                     response = generate_response('/scratch/wstoop/spellbot/responses-redditbot.txt',str(author),k['original'],k['suggestion']);
     
                     print(message);
                     print(response);
 
-#                   j.reply(add_footer(response));
+                    j.reply(add_footer(response));
+                    time.sleep(180);
     
                     break;
             
@@ -224,8 +229,10 @@ def correct_comments(thread,prefab_errors):
 ############ Scripts #################
 
 passwords = get_passwords('/scratch/wstoop/spellbot/passwords.txt');
-errors = open('/scratch/wstoop/spellbot/errors-redditbot.txt').readlines();
+errors = open('/scratch/wstoop/spellbot/errors-redditbot.txt','r');
 errors = [i.strip() for i in errors];
+threads_archive_file = open('/scratch/wstoop/spellbot/threads_done_already.txt','a+');
+threads_done_already = [i.strip() for i in threads_archive_file];
 
 #Log in
 reddit = praw.Reddit(user_agent='Fowlt bot v1.0');
@@ -240,16 +247,24 @@ for i in subreddits:
     print('# Checking subreddit: '+i.strip());
 
     subreddit = reddit.get_subreddit(i.strip());
-    for thread in subreddit.get_hot(limit=20):
-
-        correct_titles(thread,errors);
-        correct_comments(thread,errors);
+    for thread in subreddit.get_hot(limit=15):
+    
+        if thread.id not in threads_done_already:
+            correct_titles(thread,errors);
+            correct_comments(thread,errors);
+            threads_archive_file.write(thread.id+'\n');
+        else:
+            print('# Skipping thread, already done');
 
     subreddit = reddit.get_subreddit(i.strip());
-    for thread in subreddit.get_top_from_hour(limit=20):
-        
-        correct_titles(thread,errors);
-        correct_comments(thread,errors);
+    for thread in subreddit.get_top_from_hour(limit=15):
+
+        if thread.id not in threads_done_already:       
+            correct_titles(thread,errors);
+            correct_comments(thread,errors);
+            threads_archive_file.write(thread.id+'\n');
+        else:
+            print('# Skipping thread, already done');
 
 #Bijhouden welke threads al gehad
 
