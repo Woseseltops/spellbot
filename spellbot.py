@@ -207,7 +207,8 @@ for q in queries:
             for error in errors:
                 print('Error found, confidence:',error['confidence']);   
                 #If the error we were looking for and confident enough, tweet the result in a random format
-                if error['original'] == q and error['confidence'] > .98 or check_confidence == 'n':
+                if error['original'] == q and error['original'].lower() != error['suggestion'].lower() \\
+                    and (error['confidence'] > .98 or check_confidence == 'n'):
                     found_error = True;
 
                     response = generate_response(responses,'@'+tweet['user']['screen_name'],error['original'],error['suggestion'])
